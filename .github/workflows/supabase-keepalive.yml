@@ -1,0 +1,53 @@
+# ============================================================================
+# Supabase keepalive
+# ============================================================================
+# Supabase's free tier pauses a project after 7 days with no real API
+# activity -- dashboard visits don't count. This workflow issues one small
+# authenticated REST read per day against public.keepalive, a table that
+# exists solely for this purpose (see reference/008_keepalive_table.sql).
+# That table holds no user data, which is why it can carry an anon SELECT
+# grant -- public.profiles deliberately does not, since it stores email
+# addresses.
+#
+# The schedule is daily rather than weekly because the pause threshold is
+# 7 days, leaving six days of margin if a scheduled run is delayed or
+# skipped.
+#
+# A non-2xx response fails the job on purpose: a silent failure would let
+# the database pause without warning.
+# ============================================================================
+name: Supabase keepalive
+
+on:
+  schedule:
+    # Off-hour, off-zero minute: GitHub queues scheduled workflows globally,
+    # and runs on the hour (especially 0 0) are the most delayed and most
+    # often skipped under load.
+    - cron: "17 3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          status=$(curl -sS -o /dev/null -w "%{http_code}" \
+            --max-time 15 \
+            --request GET \
+            --header "apikey: ${SUPABASE_ANON_KEY}" \
+            --header "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/keepalive?select=id&limit=1")
+
+          if [ -z "$status" ] || [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "Keepalive request failed with HTTP status ${status}"
+            exit 1
+          fi
+
+          echo "Keepalive request succeeded with HTTP status ${status}"
