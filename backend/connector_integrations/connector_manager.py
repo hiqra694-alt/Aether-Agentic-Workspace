@@ -89,11 +89,10 @@ async def _call_tool_on_session(session: ClientSession, tool_name: str, argument
     text_parts = [block.text for block in result.content if isinstance(block, types.TextContent)]
     result_text = "\n".join(text_parts) if text_parts else ""
 
-    # NOTE: despite the wire-level field being named `isError`, the SDK's
-    # Python-side attribute is the snake_case `is_error` -- same aliasing
-    # quirk as Tool.inputSchema/.input_schema below. `getattr(..., "isError", ...)`
-    # would silently always be False here.
-    if getattr(result, "is_error", False):
+    # NOTE: the SDK exposes the wire-level `isError` field under that same
+    # camelCase name as the model attribute -- there is no snake_case
+    # `is_error` alias, same as Tool.inputSchema below.
+    if getattr(result, "isError", False):
         logger.warning(f"MCP: tool '{tool_name}' returned an error result: {result_text}")
         return json.dumps({"error": result_text or f"MCP tool '{tool_name}' returned an error."})
 
@@ -256,17 +255,18 @@ mcp_manager = MCPClientManager(servers=_build_default_server_specs())
 
 
 def mcp_tool_to_native_schema(tool: types.Tool) -> dict[str, Any]:
-    """Converts an MCP `Tool` (name/description/input_schema -- the SDK's
-    Python-side attribute name for the wire-level `inputSchema` field) into
-    this app's native tool schema shape -- {"type": "function", "function":
-    {...}} -- matching api.chat.tools.ALL_TOOLS, so both can sit in the
-    same list handed to the LLM."""
+    """Converts an MCP `Tool` (name/description/inputSchema -- the SDK
+    exposes the wire-level field under that same camelCase name as the
+    model attribute, with no snake_case alias) into this app's native tool
+    schema shape -- {"type": "function", "function": {...}} -- matching
+    api.chat.tools.ALL_TOOLS, so both can sit in the same list handed to
+    the LLM."""
     return {
         "type": "function",
         "function": {
             "name": tool.name,
             "description": tool.description or "",
-            "parameters": tool.input_schema,
+            "parameters": tool.inputSchema,
         },
     }
 

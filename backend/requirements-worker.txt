@@ -11,10 +11,10 @@
 # VoiceTools.search_knowledge_base, pydantic-settings for core.config,
 # etc.) -- see that file's header comment for the split rationale. FastAPI
 # itself (fastapi/uvicorn/python-multipart) rides along unused here, but
-# LiveKit Cloud's build isn't size-constrained the way a Vercel serverless
-# function bundle is, so that's a non-issue; the packages below are the
-# ones that matter (and are deliberately excluded from requirements.txt so
-# they never ship to Vercel).
+# LiveKit Cloud's build isn't constrained the way Render's free-tier cold
+# start is, so that's a non-issue; the packages below are the ones that
+# matter (and are deliberately excluded from requirements.txt so they never
+# ship to the Render service).
 -r requirements.txt
 
 livekit-agents==1.6.10
