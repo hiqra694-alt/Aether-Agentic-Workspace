@@ -56,7 +56,7 @@ async def issue_voice_token(
         token = (
             api.AccessToken(settings.livekit_api_key, settings.livekit_api_secret)
             .with_identity(str(user.id))
-            .with_name(user.email or "AetherChat User")
+            .with_name(user.email or "Aether User")
             .with_grants(api.VideoGrants(room_join=True, room=request.chat_session_id))
             .with_room_config(
                 api.RoomConfiguration(

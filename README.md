@@ -1,12 +1,11 @@
-# Aether-Agentic-Workspace
 
-An AI assistant with hybrid-retrieval RAG, live voice, a collaborative document canvas, and Google Workspace tool use, built on a provider-agnostic backend that swaps between OpenAI, Anthropic, Gemini and Groq without touching application code.
+<p align="center"> <img src="docs/logo.svg" width="88" alt="Aether logo"> </p> <h1 align="center">Aether</h1> <p align="center"> An AI assistant with hybrid-retrieval RAG, live voice, a collaborative document canvas, and Google Workspace tool use, built on a provider-agnostic backend that swaps between OpenAI, Anthropic, Gemini and Groq without touching application code. </p> <p align="center"> <img alt="Tests" src="https://github.com/hiqra694-alt/Aether-Agentic-Workspace/actions/workflows/tests.yml/badge.svg"> <img alt="Python 3.11" src="https://img.shields.io/badge/python-3.11-3776AB?logo=python&logoColor=white"> <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white"> <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white"> <img alt="pgvector" src="https://img.shields.io/badge/pgvector-4169E1?logo=postgresql&logoColor=white"> <img alt="License" src="https://img.shields.io/github/license/hiqra694-alt/Aether-Agentic-Workspace"> </p>
 
 ---
 
 ## What it does
 
-Most chat wrappers pass your message straight to one model API. AetherChat sits on a retrieval and tool-use layer instead:
+Most chat wrappers pass your message straight to one model API. Aether sits on a retrieval and tool-use layer instead:
 
 - **Grounded answers from your own documents.** Upload a PDF and ask about it. Retrieval runs a hybrid pipeline rather than plain vector search — dense embeddings and BM25 keyword ranking are fused, then reranked by a cross-encoder before anything reaches the model.
 - **Real tool use.** Ten native tools (web search, calculator, weather, knowledge-base search, chat-history search, task CRUD) plus an MCP client layer that merges external MCP server schemas into the same tool list at runtime.
@@ -228,3 +227,7 @@ backend/
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+Built by [Iqra Hameed](https://www.linkedin.com/in/iqra-hameed-).

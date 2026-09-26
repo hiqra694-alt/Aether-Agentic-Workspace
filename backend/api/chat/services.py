@@ -67,7 +67,7 @@ def _is_transient_tool_formatting_error(err_msg: str) -> bool:
 SYSTEM_PROMPT = Message(
     role="system",
     content=(
-        "You are AetherChat, a helpful AI assistant.\n\n"
+        "You are Aether, a helpful AI assistant.\n\n"
         "## Answering general questions\n"
         "Answer general knowledge, technical, and conversational questions directly from your own "
         "knowledge and conversationally. Most turns need no tool at all — if none of the tools below "

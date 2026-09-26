@@ -55,17 +55,17 @@ async def lifespan(app: FastAPI):
     await mcp_manager.shutdown()
 
 
-app = FastAPI(title="AetherChat API Portal", lifespan=lifespan)
+app = FastAPI(title="Aether API", lifespan=lifespan)
 
 
 @app.get("/", tags=["health"])
 async def health():
-    return {"status": "ok", "service": "AetherChat API"}
+    return {"status": "ok", "service": "Aether API"}
 
 
 @app.get("/api/health", tags=["health"])
 async def api_health():
-    return {"status": "ok", "service": "AetherChat API"}
+    return {"status": "ok", "service": "Aether API"}
 
 
 # Restrict CORS to production domains

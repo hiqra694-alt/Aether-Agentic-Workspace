@@ -3,7 +3,7 @@ Connector Manager.
 
 Owns connections to zero or more *external* MCP servers over the HTTP/SSE
 transport, discovers their tool schemas, and merges those schemas alongside
-AetherChat's own native tool registry (api.chat.tools.ALL_TOOLS) into one
+Aether's own native tool registry (api.chat.tools.ALL_TOOLS) into one
 list shaped for the LLM -- optionally filtered down to a per-request set of
 enabled connectors (Phase 3).
 
@@ -277,7 +277,7 @@ def get_merged_tool_schemas(
     enabled_connectors: Optional[list[str]] = None,
 ) -> list[dict[str, Any]]:
     """
-    Merges AetherChat's hardcoded native tool schemas with the cached
+    Merges Aether's hardcoded native tool schemas with the cached
     schemas of tools discovered from connected MCP servers into one unified
     list, in the same shape the LLM provider expects.
 

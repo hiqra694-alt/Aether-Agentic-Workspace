@@ -1,7 +1,7 @@
 # Agent Directive: Tool Calling Schemas, UX Resolution & Stream Fixes
 
 ## Overview
-During recent frontend QA testing on AetherChat, several critical issues were identified regarding tool parameter formats, raw stream leaking, poor city/timezone user experience (UX), and system prompt instruction bleed.
+During recent frontend QA testing on Aether, several critical issues were identified regarding tool parameter formats, raw stream leaking, poor city/timezone user experience (UX), and system prompt instruction bleed.
 
 The primary root cause is that **vague tool schemas and parameter definitions in `backend/api/chat/tools.py`** are forcing the model to guess argument formats (e.g., passing `"Tokyo"` instead of `"Asia/Tokyo"`), causing execution crashes and bad user experience.
 
