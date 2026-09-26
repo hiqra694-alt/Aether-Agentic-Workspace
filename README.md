@@ -53,6 +53,17 @@ BM25 re-ranks the rows pgvector already returned — it is not a second, indepen
 
 ## Evaluating retrieval
 
+Retrieval quality is measured rather than assumed. `scripts/evaluate_retrieval.py`
+runs the retriever in isolation against a 28-query labelled set
+(`scripts/eval_dataset.json`) over a 3-document, 85-chunk corpus, and reports
+Hit Rate@k and MRR. The LLM is never invoked, so the numbers below reflect the
+retrieval pipeline alone.
+
+```bash
+python scripts/evaluate_retrieval.py    # runs all three configurations
+python scripts/diagnose_misses.py       # per-query failure breakdown
+```
+
 | Configuration | Hit Rate@3 | Hit Rate@5 | MRR@5 |
 | --- | --- | --- | --- |
 | Vector only | 0.571 | 0.643 | 0.528 |
