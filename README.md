@@ -18,47 +18,11 @@ Most chat wrappers pass your message straight to one model API. AetherChat sits 
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    subgraph client [Browser]
-        UI["Next.js 16 · React 19<br/>chat · canvas · voice modal"]
-    end
+<picture> <source media="(prefers-color-scheme: dark)" srcset="docs/architecture-dark.svg"> <img alt="Aether architecture: a Next.js client on Vercel, a FastAPI API on Render and a LiveKit voice worker, deployed independently and sharing one Supabase data plane" src="docs/architecture-light.svg"> </picture>
 
-    subgraph vercel [Vercel]
-        MW["next.config rewrites<br/>Supabase session middleware"]
-    end
+Audio never touches the API. The API only mints a LiveKit room token; the browser and the voice worker then meet in that room over WebRTC. The worker runs the same retrieval code as the API, in its own process, against the same database.
 
-    subgraph render ["Render · FastAPI (root dir: backend/)"]
-        CHAT["chat service<br/>streaming + tool loop"]
-        RAG["retrieval<br/>hybrid + rerank"]
-        CONN["connectors<br/>Google OAuth · MCP client"]
-        SCHED["task scheduler"]
-    end
-
-    subgraph providers [LLM providers]
-        P["OpenAI · Anthropic<br/>Gemini · Groq"]
-    end
-
-    subgraph data [Supabase]
-        PG[("Postgres + pgvector<br/>chunks · tasks · memory · tokens")]
-        AUTH[Auth]
-    end
-
-    LK["LiveKit Cloud<br/>voice worker<br/>Deepgram · Cartesia"]
-    VOY["Voyage AI<br/>embeddings"]
-
-    UI --> MW --> CHAT
-    UI -. WebRTC .-> LK
-    LK --> CHAT
-    CHAT --> RAG
-    CHAT --> CONN
-    CHAT --> P
-    RAG --> VOY
-    RAG --> PG
-    SCHED --> PG
-    CONN --> PG
-    UI --> AUTH
-```
+Backend calls are proxied by `next.config.ts` rewrites, while `proxy.ts` handles Supabase session refresh with `/api` excluded from its matcher — so a backend call never pays for a session round trip, and never hits Edge Middleware's 25-second ceiling.
 
 Three processes deploy independently from this one repository:
 
@@ -76,19 +40,12 @@ The part worth reading the code for — `backend/api/documents/services.py`:
 2. **Vector search** over `document_chunks` in pgvector, scoped to the requesting user.
 3. **BM25** keyword ranking over the same candidate pool via `rank_bm25`.
 4. **Reciprocal rank fusion** merges the two rankings — this recovers exact-term matches that dense retrieval alone loses (product names, error codes, proper nouns).
-5. **Cross-encoder rerank** with `fastembed`, capped at 25 candidates so the stage stays cheap, pinned to one thread so the ONNX session cannot saturate the host.
+5. **Cross-encoder rerank** with `fastembed`, capped at 25 candidates so the stage stays cheap, pinned to one thread so the ONNX session cannot saturate the host. Measured below — on the current eval set this stage does not improve results.
 6. Top-k chunks go into the prompt.
 
-```mermaid
-flowchart LR
-    Q[query] --> E[Voyage embed]
-    E --> V[pgvector<br/>dense search]
-    Q --> B[BM25<br/>keyword rank]
-    V --> RRF[reciprocal<br/>rank fusion]
-    B --> RRF
-    RRF --> R["cross-encoder rerank<br/>(top 25)"]
-    R --> K[top-k → prompt]
-```
+<picture> <source media="(prefers-color-scheme: dark)" srcset="docs/retrieval-dark.svg"> <img alt="Retrieval: one candidate pool from pgvector, ranked by cosine similarity and by BM25, fused with reciprocal rank fusion, then reranked by a cross-encoder" src="docs/retrieval-light.svg"> </picture>
+
+BM25 re-ranks the rows pgvector already returned — it is not a second, independent search over the corpus. Both rankings cover the same candidate pool, which is what makes reciprocal rank fusion meaningful here.
 
 ### Provider abstraction
 
@@ -96,18 +53,25 @@ flowchart LR
 
 ## Evaluating retrieval
 
-Retrieval quality is measured rather than assumed. `scripts/evaluate_retrieval.py`
-runs the retriever in isolation against a 28-query labelled set
-(`scripts/eval_dataset.json`) and reports Hit Rate@k and MRR. The LLM is never
-invoked, so the numbers reflect the retrieval pipeline alone.
+| Configuration | Hit Rate@3 | Hit Rate@5 | MRR@5 |
+| --- | --- | --- | --- |
+| Vector only | 0.571 | 0.643 | 0.528 |
+| Vector + BM25 (RRF) | **0.750** | **0.821** | **0.663** |
+| Vector + BM25 + cross-encoder rerank | 0.679 | 0.679 | 0.548 |
 
-```bash
-python scripts/evaluate_retrieval.py    # full run
-python scripts/diagnose_misses.py       # per-query failure breakdown
-```
+28 queries, `top_k = 5`. All three configurations rank the same candidate pool,
+so the differences are attributable to ranking alone.
 
-Toggling the fusion and rerank stages gives an ablation across
-vector-only, vector + BM25, and vector + BM25 + rerank.
+**Fusing BM25 with vector search is a clear win** — five more queries hit at both
+k=3 and k=5. Exact-term matches that dense retrieval alone loses (names, dates,
+document versions) are what RRF recovers.
+
+**The cross-encoder rerank does not help on this set.** It costs two hits at k=3,
+four at k=5, and lowers MRR. One caveat on the metric: a hit requires the exact
+labelled chunk to be returned, so a reranker that surfaces a different but equally
+useful chunk from the correct document scores as a miss. At 28 queries this is
+suggestive rather than conclusive, so the stage stays in the pipeline pending a
+per-query breakdown.
 
 ## Tech stack
 
