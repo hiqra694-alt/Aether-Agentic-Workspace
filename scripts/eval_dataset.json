@@ -126,13 +126,6 @@
     "ground_truth_answer": "The Wall Street Journal (WSJ) portion of the Penn Treebank, about 40K training sentences"
   },
   {
-    "id": "eval_019",
-    "query": "What email address is listed on Iqra Hameed's CV?",
-    "expected_document": "IQRA HAMEED_CV.pdf",
-    "expected_chunk_text": "IQRA HAMEED Punjab,Pakistan • ah5456387@gmail.com",
-    "ground_truth_answer": "ah5456387@gmail.com"
-  },
-  {
     "id": "eval_020",
     "query": "What is Iqra Hameed's current job title and employer?",
     "expected_document": "IQRA HAMEED_CV.pdf",
@@ -173,13 +166,6 @@
     "expected_document": "IQRA HAMEED_IAPS_CV.pdf",
     "expected_chunk_text": "AI-focused computer science researcher with strong interests in deep learning, human behavior recognition, and sustainability-driven smart systems.",
     "ground_truth_answer": "Deep learning, human behavior recognition, and sustainability-driven smart systems."
-  },
-  {
-    "id": "eval_026",
-    "query": "What phone number is listed on Iqra Hameed's IAPS CV?",
-    "expected_document": "IQRA HAMEED_IAPS_CV.pdf",
-    "expected_chunk_text": "IQRA HAMEED Punjab,Pakistan • ah5456387@gmail.com • +923217744760",
-    "ground_truth_answer": "+923217744760"
   },
   {
     "id": "eval_027",

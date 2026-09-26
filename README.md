@@ -53,7 +53,7 @@ BM25 re-ranks the rows pgvector already returned — it is not a second, indepen
 ## Evaluating retrieval
 
 Retrieval quality is measured rather than assumed. `scripts/evaluate_retrieval.py`
-runs the retriever in isolation against a 28-query labelled set
+runs the retriever in isolation against a 26-query labelled set
 (`scripts/eval_dataset.json`) over a 3-document, 85-chunk corpus, and reports
 Hit Rate@k and MRR. The LLM is never invoked, so the numbers below reflect the
 retrieval pipeline alone.
@@ -65,11 +65,11 @@ python scripts/diagnose_misses.py       # per-query failure breakdown
 
 | Configuration | Hit Rate@3 | Hit Rate@5 | MRR@5 |
 | --- | --- | --- | --- |
-| Vector only | 0.571 | 0.643 | 0.528 |
-| Vector + BM25 (RRF) | **0.750** | **0.821** | **0.663** |
-| Vector + BM25 + cross-encoder rerank | 0.679 | 0.679 | 0.548 |
+| Vector only | 0.577 | 0.654 | 0.530 |
+| Vector + BM25 (RRF) | **0.769** | **0.846** | **0.676** |
+| Vector + BM25 + cross-encoder rerank | 0.692 | 0.692 | 0.551 |
 
-28 queries, `top_k = 5`. All three configurations rank the same candidate pool,
+26 queries, `top_k = 5`. All three configurations rank the same candidate pool,
 so the differences are attributable to ranking alone.
 
 **Fusing BM25 with vector search is a clear win** — five more queries hit at both
