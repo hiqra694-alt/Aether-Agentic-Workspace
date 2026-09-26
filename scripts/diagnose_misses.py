@@ -28,6 +28,7 @@ BACKEND_DIR = SCRIPTS_DIR.parent / "backend"
 EVAL_DATASET_PATH = SCRIPTS_DIR / "eval_dataset.json"
 
 DEFAULT_EVAL_USER_ID = "de162a33-ebe8-4a7b-b508-f6f22b6d2a40"
+DEFAULT_EVAL_SESSION_ID = "00000000-0000-4000-8000-000000000001"
 
 # The 9 queries that scored 0.000 RR@5 in the last evaluate_retrieval.py run.
 FAILING_IDS = {
@@ -63,7 +64,7 @@ def _build_supabase_client():
     return create_client(settings.supabase_url, service_role_key)
 
 
-def _raw_vector_search(supabase, query: str, user_id: str, top_k: int) -> list[dict]:
+def _raw_vector_search(supabase, query: str, user_id: str, session_id: str, top_k: int) -> list[dict]:
     """
     Calls match_document_chunks directly (no BM25/RRF/reranking), mirroring
     exactly what get_relevant_context used to do before the hybrid rerank
@@ -77,6 +78,7 @@ def _raw_vector_search(supabase, query: str, user_id: str, top_k: int) -> list[d
             "match_threshold": DEFAULT_MATCH_THRESHOLD,
             "match_count": top_k,
             "filter_user_id": user_id,
+            "filter_session_id": session_id,
             "filter_document_name": None,
         },
     ).execute()
@@ -104,11 +106,12 @@ async def diagnose() -> None:
         print(f"WARNING: ids not found in eval_dataset.json: {sorted(missing_ids)}")
 
     user_id = os.environ.get("EVAL_USER_ID", DEFAULT_EVAL_USER_ID)
+    session_id = os.environ.get("EVAL_SESSION_ID", DEFAULT_EVAL_SESSION_ID)
     supabase = _build_supabase_client()
 
     rows_out = []
     for entry in failing_entries:
-        rows_100 = _raw_vector_search(supabase, entry["query"], user_id, TOP_100)
+        rows_100 = _raw_vector_search(supabase, entry["query"], user_id, session_id, TOP_100)
         rank = _find_rank(entry, rows_100)
 
         in_top_25 = "Yes" if (rank is not None and rank <= TOP_25) else "No"
