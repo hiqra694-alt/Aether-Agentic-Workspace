@@ -79,7 +79,7 @@ document versions) are what RRF recovers.
 **The cross-encoder rerank does not help on this set.** It costs two hits at k=3,
 four at k=5, and lowers MRR. One caveat on the metric: a hit requires the exact
 labelled chunk to be returned, so a reranker that surfaces a different but equally
-useful chunk from the correct document scores as a miss. At 28 queries this is
+useful chunk from the correct document scores as a miss. At 26 queries this is
 suggestive rather than conclusive, so the stage stays in the pipeline pending a
 per-query breakdown.
 
