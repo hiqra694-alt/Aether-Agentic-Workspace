@@ -1,0 +1,43 @@
+# ============================================================================
+# Tests
+# ============================================================================
+# Runs the backend test suite against a clean install of the pinned
+# requirements (backend/requirements.txt), rather than whatever a
+# long-lived local venv happens to have accumulated. That's what catches
+# dependency drift -- a package version that works locally but isn't
+# actually pinned/compatible -- before it reaches production.
+#
+# No API keys or secrets are configured here: providers/mock.py stands in
+# for live LLM calls, so the suite runs without them.
+# ============================================================================
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        working-directory: backend
+        run: pytest
