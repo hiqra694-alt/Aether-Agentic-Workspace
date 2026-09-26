@@ -9,7 +9,18 @@ from openai import BadRequestError
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import providers.groq as groq_module
 from providers.groq import GroqProvider
+
+
+@pytest.fixture(autouse=True)
+def _stub_settings(monkeypatch):
+    """GroqProvider.__init__ calls get_settings() and only reads
+    .groq_api_key off the result, so a bare stub is enough to satisfy the
+    constructor guard without touching .env or constructing a real Settings
+    (which would read .env again)."""
+    stub = SimpleNamespace(groq_api_key="test-key")
+    monkeypatch.setattr(groq_module, "get_settings", lambda: stub)
 
 
 def _bad_request_error(failed_generation):
